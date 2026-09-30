@@ -12,8 +12,9 @@ import java.awt.event.KeyEvent
 
 /**
  * Applies [HerdrKeyClaims] to AWT key events before the IDE's action system sees them, while [target]
- * owns keyboard focus. A claimed press goes to [onKey], [onCopy] or [onPaste], and its typed and
- * released events are held back from the IDE too.
+ * owns keyboard focus (ADR-0004). A claimed press goes to [onKey], [onCopy] or [onPaste], and its typed
+ * and released events are held back from the IDE too. A press that closes Herdr's prefix mode sends
+ * Esc to [onKey] first, then takes its own route.
  */
 class HerdrKeyRouter(
     private val target: Component,
@@ -40,7 +41,12 @@ class HerdrKeyRouter(
     private fun press(event: KeyEvent): Boolean {
         swallowTyped = false
         if (AwtKeyTranslator.isModifierOnly(event)) return false
-        when (claims.claim(HerdrKeyStrokes.of(event), keymap())) {
+        val route = claims.route(HerdrKeyStrokes.of(event), keymap())
+        if (route.closesPrefix) {
+            onKey(ESC_PRESS)
+            onKey(ESC_RELEASE)
+        }
+        when (route.claim) {
             HerdrKeyClaim.IDE -> return false
             HerdrKeyClaim.HERDR -> onKey(AwtKeyTranslator.input(event, "PRESS", AwtKeyTranslator.text(event)))
             HerdrKeyClaim.COPY -> onCopy()
@@ -55,5 +61,10 @@ class HerdrKeyRouter(
         if (!claimedKeys.remove(event.keyCode)) return false
         onKey(AwtKeyTranslator.input(event, "RELEASE", null))
         return true
+    }
+
+    private companion object {
+        val ESC_PRESS = TerminalKeyInput("PRESS", "ESCAPE", 0, 0, null, 0)
+        val ESC_RELEASE = ESC_PRESS.copy(action = "RELEASE")
     }
 }
