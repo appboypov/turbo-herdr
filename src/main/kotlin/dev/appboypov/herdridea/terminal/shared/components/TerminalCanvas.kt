@@ -18,6 +18,7 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.Point
+import java.awt.geom.Point2D
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
@@ -48,7 +49,7 @@ class TerminalCanvas(
     private var cellWidth = TerminalSize.DEFAULT.cellWidthPx
     private var cellHeight = TerminalSize.DEFAULT.cellHeightPx
     private var ascentOffset = 0
-    private var monospace = true
+    private val glyphPosition = Point2D.Float()
     private var background = Color.BLACK
     private var reportedSize: TerminalSize? = null
     private val colors = HashMap<Int, Color>()
@@ -187,7 +188,6 @@ class TerminalCanvas(
         cellWidth = max(1, fm.charWidth('W'))
         cellHeight = max(1, ceil(fm.height * look.lineSpacing).toInt())
         ascentOffset = (cellHeight - fm.height) / 2 + fm.ascent
-        monospace = fm.charWidth('i') == cellWidth && fm.charWidth('M') == cellWidth
         background = color(look.colors.background)
         selection = Color(look.selectionColor and 0xFFFFFF or (0x80 shl 24), true)
         reportSize()
@@ -258,7 +258,7 @@ class TerminalCanvas(
             }
             val fg = foreground(frame, row, x)
             var end = x + 1
-            val batch = monospace && isAscii(text)
+            val batch = isAscii(text)
             if (batch) {
                 while (end < row.width && row.flags[end] == flags && foreground(frame, row, end) == fg && row.text[end].let { it != null && isAscii(it) }) end++
             }
@@ -266,11 +266,26 @@ class TerminalCanvas(
             g.font = fonts[fontIndex(flags)]
             val left = x * cellWidth
             val cells = if (flags and ScreenRow.WIDE_FLAG != 0) 2 else end - x
-            if (!batch && isCellFilling(text)) drawStretched(g, text, left, top)
-            else g.drawString(if (batch) row.text(x, end) else text, left, top + ascentOffset)
+            if (batch) drawOnGrid(g, row.text(x, end), left, top + ascentOffset)
+            else if (isCellFilling(text)) drawStretched(g, text, left, top)
+            else g.drawString(text, left, top + ascentOffset)
             decorate(g, flags, left, top, cells * cellWidth)
             x = if (batch) end else x + 1
         }
+    }
+
+    /**
+     * Draws an ASCII run, one glyph per cell from [left], in one draw call: each glyph starts at its
+     * own cell's left edge whatever the font's advance, so text stays on the grid that backgrounds,
+     * selection and the caret use (design D2). Without shaping, a ligature font draws no ligatures here.
+     */
+    private fun drawOnGrid(g: Graphics2D, text: String, left: Int, baseline: Int) {
+        val glyphs = g.font.createGlyphVector(g.fontRenderContext, text)
+        for (i in 0 until glyphs.numGlyphs) {
+            glyphPosition.setLocation((i * cellWidth).toFloat(), 0f)
+            glyphs.setGlyphPosition(i, glyphPosition)
+        }
+        g.drawGlyphVector(glyphs, left.toFloat(), baseline.toFloat())
     }
 
     /**
