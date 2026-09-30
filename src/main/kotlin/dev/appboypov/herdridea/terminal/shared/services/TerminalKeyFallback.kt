@@ -8,14 +8,21 @@ import java.awt.event.KeyListener
  * Sends keys no IDE action consumed to the terminal (design D4). A press that types nothing, or one
  * with ctrl, alt or command, is sent on press. A typing press waits for its typed event and is sent
  * with that text. A typed event whose press an IDE action took is dropped.
+ *
+ * A press that [ideHandles] reports an enabled IDE action for sends nothing, and neither do its
+ * typed event and release (design D5): macOS can run such a shortcut from its menu and still deliver
+ * the press unconsumed.
  */
-class TerminalKeyFallback(private val onKey: (TerminalKeyInput) -> Unit) : KeyListener {
+class TerminalKeyFallback(
+    private val ideHandles: (KeyEvent) -> Boolean,
+    private val onKey: (TerminalKeyInput) -> Unit,
+) : KeyListener {
     private var typingPress: KeyEvent? = null
     private val pressed = HashSet<Int>()
 
     override fun keyPressed(e: KeyEvent) {
         typingPress = null
-        if (e.isConsumed || AwtKeyTranslator.isModifierOnly(e)) return
+        if (e.isConsumed || AwtKeyTranslator.isModifierOnly(e) || ideHandles(e)) return
         if (AwtKeyTranslator.text(e) != null) {
             typingPress = e
             return
