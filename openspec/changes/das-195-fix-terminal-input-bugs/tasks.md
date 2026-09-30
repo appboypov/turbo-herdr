@@ -34,6 +34,13 @@
 
 ## Implementation Notes
 
+Sandbox rig for the real-key tasks (3.1, 5.3 to 5.7), prepared by the planner:
+
+- Natives are already in `src/main/resources/native/` (gitignored). `./gradlew runIde` starts the sandbox IDE; its settings file `.intellijPlatform/sandbox/herdr-idea/IU-2026.1.2/config_runIde/options/herdr-idea.xml` points herdrPath at `/tmp/das195/herdr`, a wrapper that runs `herdr --session das195-verify`, isolated from Brian's sessions. The sandbox asks "Trust Project" first. Stop the sandbox and kill the `das195-verify` Herdr session when done.
+- Named actions: `curl -s -X POST 'http://127.0.0.1:63343/api/herdr?action=<name>'` with `herdr.panel.show`, `herdr.panel.read` (screen, cursor, focused), `herdr.panel.capture` (arg `path`, PNG). Port 63342 is Brian's own IDE: never send it keys.
+- Real keys: `/tmp/das195-rig/ev` (source `ev.swift` beside it) posts CGEvents: `ev act <sandbox pid>` brings the sandbox to front (Stage Manager hides it otherwise), `ev key <mac keycode> cmd,shift,ctrl,alt`, `ev text <string>`, `ev click X Y` (screen points). Keycodes: left 123, right 124, delete 51, comma 43, o 31, v 9, x 7, semicolon 41, escape 53.
+- Herdr side: `HERDR_SOCKET_PATH=~/.config/herdr/sessions/das195-verify/herdr.sock herdr tab list|focus|create` and `herdr pane list|read|send-text`.
+
 ## Plan Change Log
 
 ## Review Triage Log
