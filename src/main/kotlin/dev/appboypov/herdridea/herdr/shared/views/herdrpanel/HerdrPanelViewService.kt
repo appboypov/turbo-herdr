@@ -68,6 +68,7 @@ class HerdrPanelViewService(private val project: Project) : Disposable {
         CAPTURE to { args -> capture(args) },
         READ to { _ -> read() },
         KEY to { args -> client.key(parsed { TerminalKeyInput.fromArgs(args) }); null },
+        INPUT to { args -> client.input(parsed { requireNotNull(args["text"]) { "Missing argument: text" } }); null },
         MOUSE to { args -> client.mouse(parsed { TerminalMouseInput.fromArgs(args) }); null },
         PASTE to { args -> paste(args) },
         COPY to { _ -> copy() },
@@ -187,6 +188,7 @@ class HerdrPanelViewService(private val project: Project) : Disposable {
         const val CAPTURE = "herdr.panel.capture"
         const val READ = "herdr.panel.read"
         const val KEY = "herdr.terminal.key"
+        const val INPUT = "herdr.terminal.input"
         const val MOUSE = "herdr.terminal.mouse"
         const val PASTE = "herdr.terminal.paste"
         const val COPY = "herdr.terminal.copy"

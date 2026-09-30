@@ -17,6 +17,7 @@ import com.intellij.openapi.util.SystemInfo
 import dev.appboypov.herdridea.herdr.shared.services.HerdrKeyClaims
 import dev.appboypov.herdridea.herdr.shared.services.HerdrKeyRouter
 import dev.appboypov.herdridea.terminal.shared.components.TerminalCanvas
+import dev.appboypov.herdridea.terminal.shared.services.IdeKeyActions
 import dev.appboypov.herdridea.terminal.shared.services.TerminalKeyFallback
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,7 +67,13 @@ class HerdrPanelView(private val viewModel: HerdrPanelViewModel, private val con
             onPaste = { viewModel.paste() },
         )
         IdeEventQueue.getInstance().addDispatcher(router, parent)
-        terminal.addKeyListener(TerminalKeyFallback { viewModel.key(it) })
+        val fallback = TerminalKeyFallback(
+            isMac = SystemInfo.isMac,
+            ideHandles = IdeKeyActions::handles,
+            onKey = { viewModel.key(it) },
+            onText = { viewModel.input(it) },
+        )
+        terminal.addKeyListener(fallback)
         scope.launch { viewModel.look.collect { look -> terminal.setLook(look); status.background = terminal.background } }
         scope.launch { viewModel.frame.collect { frame -> frame?.let(terminal::show) } }
         scope.launch { viewModel.state.collect(::render) }

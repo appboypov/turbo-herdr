@@ -17,6 +17,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * A program running under a pty, emulated by libghostty-vt (design D2, D3).
@@ -33,7 +34,7 @@ class TerminalSession private constructor(
 ) : AutoCloseable {
     private val log = HerdrLog.of(TerminalSession::class.java)
     private val closed = AtomicBoolean(false)
-    private val framePending = AtomicBoolean(false)
+    private val unfedChunks = AtomicInteger(0)
     private lateinit var terminal: GhosttyTerminal
 
     fun resize(cols: Int, rows: Int, cellWidthPx: Int, cellHeightPx: Int) = onTerminalThread {
@@ -56,6 +57,9 @@ class TerminalSession private constructor(
     }
 
     fun paste(text: String) = onTerminalThread { write(terminal.encodePaste(text)) }
+
+    /** Writes [text] to the pty as UTF-8, bypassing the key encoder, so no keyboard protocol changes it. */
+    fun input(text: String) = onTerminalThread { write(text.toByteArray(Charsets.UTF_8)) }
 
     /** Ends the client process only; a Herdr server it attached to keeps running. */
     override fun close() {
@@ -86,8 +90,8 @@ class TerminalSession private constructor(
                 val count = input.read(buffer)
                 if (count < 0) break
                 val chunk = buffer.copyOf(count)
-                onTerminalThread { terminal.feed(chunk) }
-                requestFrame()
+                unfedChunks.incrementAndGet()
+                onTerminalThread { feed(chunk) }
             }
         } catch (e: IOException) {
             if (!closed.get()) log.debug("pty read ended", "reason" to e.message)
@@ -99,12 +103,15 @@ class TerminalSession private constructor(
         }
     }
 
-    /** Coalesces frames: one snapshot after all output queued before it. */
-    private fun requestFrame() {
-        if (framePending.compareAndSet(false, true)) onTerminalThread {
-            framePending.set(false)
-            publishFrame()
-        }
+    /**
+     * Feeds one output chunk and coalesces frames (design D1): the terminal thread publishes once no
+     * chunk that was read is still waiting to be fed, so a burst yields one frame that includes its
+     * last chunk.
+     */
+    private fun feed(chunk: ByteArray) {
+        val lastQueued = unfedChunks.decrementAndGet() == 0
+        terminal.feed(chunk)
+        if (lastQueued) publishFrame()
     }
 
     private fun publishFrame() = onFrame(terminal.snapshot())

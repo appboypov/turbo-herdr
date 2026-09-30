@@ -1,6 +1,6 @@
 package dev.appboypov.herdridea.herdr.shared.enums
 
-/** Who handles a key pressed while the Herdr panel has focus (ADR-0003). */
+/** Who handles a key pressed while the Herdr panel has focus (ADR-0004). */
 enum class HerdrKeyClaim {
     /** Herdr gets the key; the IDE never sees it. */
     HERDR,

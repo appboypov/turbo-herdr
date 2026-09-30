@@ -36,14 +36,26 @@ class TerminalSessionTest {
         }
     }
 
-    private fun start(script: String) = TerminalSession.start(
+    @Test
+    fun `given a busy terminal thread, when a program writes many chunks quickly and then a marker and waits, then the last frame shows the marker`() {
+        // A slow frame sink keeps the terminal thread busy, so later chunks queue up behind a publish.
+        val slowFrames: (ScreenFrame) -> Unit = {
+            frame.set(it)
+            Thread.sleep(300)
+        }
+        start("for i in 1 2 3 4 5 6 7 8; do printf \"chunk \$i \"; sleep 0.05; done; printf 'END-OF-BURST'; read x", slowFrames).use {
+            awaitText("END-OF-BURST")
+        }
+    }
+
+    private fun start(script: String, onFrame: (ScreenFrame) -> Unit = frame::set) = TerminalSession.start(
         vt,
         listOf("/bin/sh", "-c", script),
         System.getProperty("user.home"),
         System.getenv() + ("TERM" to "xterm-256color"),
         TerminalSize(80, 24, 8, 16),
         TerminalColors(0xFFFFFF, 0x000000, List(16) { 0x808080 }),
-        onFrame = frame::set,
+        onFrame = onFrame,
         onExit = { exit.complete(it) },
     )
 

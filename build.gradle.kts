@@ -35,6 +35,12 @@ intellijPlatform {
     pluginConfiguration {
         version = providers.gradleProperty("pluginVersion")
         changeNotes = """
+            <p>0.1.1: terminal input fixes.</p>
+            <ul>
+              <li>The panel shows the latest screen after output stops, so a Herdr tab switch no longer leaves stale rows.</li>
+              <li>Text, selection and the caret share one cell grid, so the caret no longer drifts on long lines.</li>
+              <li>On macOS, Cmd+Left, Cmd+Right and Cmd+Backspace move to line start, line end and delete the line as in Ghostty; after the Herdr prefix only keys Herdr binds go to Herdr, and IDE shortcuts send nothing to the pane.</li>
+            </ul>
             <p>0.1.0: first release.</p>
             <ul>
               <li>Herdr tool window with terminal emulation by libghostty-vt.</li>
