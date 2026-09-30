@@ -1,6 +1,6 @@
 # ADR-0003: Herdr's config decides key precedence in the panel
 
-- Status: accepted
+- Status: superseded by ADR-0004
 - Date: 2026-09-22
 - Supersedes: none
 

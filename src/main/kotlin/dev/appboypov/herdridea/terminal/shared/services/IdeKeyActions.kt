@@ -10,6 +10,7 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.project.DumbService
+import dev.appboypov.herdridea.core.services.HerdrLog
 import java.awt.event.KeyEvent
 import javax.swing.KeyStroke
 
@@ -23,6 +24,8 @@ import javax.swing.KeyStroke
  * not the key dispatcher, runs them.
  */
 object IdeKeyActions {
+    private val log = HerdrLog.of(IdeKeyActions::class.java)
+
     /** True when an action bound to [event]'s keystroke is enabled where [event] was pressed. EDT. */
     fun handles(event: KeyEvent): Boolean {
         val shortcut = KeyboardShortcut(KeyStroke.getKeyStrokeForEvent(event), null)
@@ -30,12 +33,14 @@ object IdeKeyActions {
         val actions = ActionManager.getInstance()
         val context = DataManager.getInstance().getDataContext(event.component)
         val dumb = CommonDataKeys.PROJECT.getData(context)?.let { DumbService.isDumb(it) } == true
-        return ids.any { id ->
-            val action = actions.getAction(id) ?: return@any false
-            if (dumb && !action.isDumbAware) return@any false
+        val handler = ids.firstOrNull { id ->
+            val action = actions.getAction(id) ?: return@firstOrNull false
+            if (dumb && !action.isDumbAware) return@firstOrNull false
             val actionEvent = AnActionEvent.createEvent(action, context, null, ActionPlaces.KEYBOARD_SHORTCUT, ActionUiKind.NONE, null)
             ActionUtil.updateAction(action, actionEvent)
             actionEvent.presentation.isEnabled
-        }
+        } ?: return false
+        log.debug("key left to IDE action", "action" to handler, "keyCode" to event.keyCode, "modifiers" to event.modifiersEx)
+        return true
     }
 }

@@ -52,3 +52,19 @@
 ## Review Triage Log
 
 - 2026-09-30, local review run 1 (`codex review`, `gpt-6-sol`, effort medium, base `main`): no findings. No Fix, so no second run. No Backlog issues, no Declines.
+
+## Code Review
+
+### 2026-09-30
+
+Verifier review (Sarkout, solo mode, all five lenses in one session): 0 `decision-needed`, 3 `patch`, 1 `defer`, 2 rejected.
+
+- [Review][Patch] ADR-0003 still reads `Status: accepted` although ADR-0004 supersedes it, so two accepted ADRs give opposite prefix rules [adr/0003-herdr-config-decides-key-precedence.md:3] - applied
+- [Review][Patch] No test covers `HerdrKeyRouter` sending Esc before a key that closes prefix mode; without that Esc Herdr stays in prefix mode and the next `v` splits the pane, and no test fails [src/main/kotlin/dev/appboypov/herdridea/herdr/shared/services/HerdrKeyRouter.kt:45] - applied: new `HerdrKeyRouterTest` (2 tests); with the Esc send removed, the IDE-chord test failed on the VPS
+- [Review][Patch] `IdeKeyActions` drops a key without a trace in idea.log, so the known risk (an action enabled without the input event that the IDE does not run) cannot be diagnosed [src/main/kotlin/dev/appboypov/herdridea/terminal/shared/services/IdeKeyActions.kt:33] - applied: debug line naming the action
+- [Review][Defer] No test covers `IdeKeyActions` updating actions without the key event [src/main/kotlin/dev/appboypov/herdridea/terminal/shared/services/IdeKeyActions.kt:36] - deferred: the regression it guards (`ShowSettings` disabled for a key event) exists on macOS only, and checks run on the Linux VPS, so a platform test there cannot observe it.
+
+Rejected:
+
+- `false`: `TerminalCanvasTest` depends on a system monospaced font with a fractional advance. It passed on the Linux VPS and in the GitHub `build` pipeline on Ubuntu.
+- `low`, decided by Brian: the spec scenarios are not proven in a running IDE. Brian chose unit tests as the evidence (2026-09-30), and the fix would edit this change's tasks.
