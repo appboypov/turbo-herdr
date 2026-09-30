@@ -50,3 +50,5 @@
 - 2026-09-30, during verification: Brian stopped the real-key sandbox checks (old 5.3 to 5.7). They sent CGEvent keys and clicks on his own Mac while he worked. They are removed from this change, together with the sandbox rig note. Checks run on the VPS only, with no local fallback. The real-key results that KeyFlow already recorded under 3.1 to 3.5 stay as history; they were gathered on Brian's Mac without his go.
 
 ## Review Triage Log
+
+- 2026-09-30, local review run 1 (`codex review`, `gpt-6-sol`, effort medium, base `main`): no findings. No Fix, so no second run. No Backlog issues, no Declines.
