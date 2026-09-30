@@ -83,6 +83,8 @@ class HerdrClient(
 
     fun paste(text: String) = session?.paste(text)
 
+    fun input(text: String) = session?.input(text)
+
     /** Ends only the client; the Herdr server and its sessions keep running. */
     override fun close() {
         worker.shutdownNow()

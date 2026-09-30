@@ -33,6 +33,9 @@ class HerdrPanelViewModel(private val service: HerdrPanelViewService) {
 
     fun key(input: TerminalKeyInput) = service.run(HerdrPanelViewService.KEY, input.toArgs())
 
+    /** Sends [text] to the pane as is, without the key encoder. */
+    fun input(text: String) = service.run(HerdrPanelViewService.INPUT, mapOf("text" to text))
+
     fun mouse(input: TerminalMouseInput) = service.run(HerdrPanelViewService.MOUSE, input.toArgs())
 
     fun copy() = service.run(HerdrPanelViewService.COPY)

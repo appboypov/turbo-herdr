@@ -58,6 +58,9 @@ class TerminalSession private constructor(
 
     fun paste(text: String) = onTerminalThread { write(terminal.encodePaste(text)) }
 
+    /** Writes [text] to the pty as UTF-8, bypassing the key encoder, so no keyboard protocol changes it. */
+    fun input(text: String) = onTerminalThread { write(text.toByteArray(Charsets.UTF_8)) }
+
     /** Ends the client process only; a Herdr server it attached to keeps running. */
     override fun close() {
         if (!closed.compareAndSet(false, true)) return
