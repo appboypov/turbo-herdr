@@ -25,7 +25,7 @@
 ## 5. Verification
 
 - [x] 5.1 `openspec validate das-195-fix-terminal-input-bugs --type change --strict` -- reports the change valid.
-- [ ] 5.2 Crabbox `check` job from `.crabbox.yaml` (natives build plus `./gradlew check`) on the VPS -- passes; local `./gradlew check` only per the `madspec-remote-checks-and-tests` fallback rules.
+- [x] 5.2 Crabbox `check` job from `.crabbox.yaml` (natives build plus `./gradlew check`) on the VPS -- passes; local `./gradlew check` only per the `madspec-remote-checks-and-tests` fallback rules.
 - [ ] 5.3 Sandbox IDE (`./gradlew runIde`, herdrPath wrapper `exec herdr --session <isolated>`), a Herdr session with two tabs of different full-screen content: switch tabs 30 times with the Herdr tab keys, read the panel after 1 s each time with `herdr.panel.read` -- every read matches `herdr pane read` of the new tab; before the fix 30 of 32 failed.
 - [ ] 5.4 Sandbox: type a line past column 50 in zsh and capture with `herdr.panel.capture` -- the caret sits directly after the last character; check once more with a bold prompt segment.
 - [ ] 5.5 Sandbox, real keys (CGEvent) into `cat -v` and into omp: Cmd+Left, Cmd+Right, Cmd+Backspace -- `cat -v` shows `^A`, `^E`, `^U`; in omp's prompt `aaa bbb`, Cmd+Left then `x` gives `xaaa bbb`.
@@ -53,6 +53,7 @@ Sandbox rig for the real-key tasks (3.1, 5.3 to 5.7), prepared by the planner:
 - 3.6 (Frontend): `HerdrKeyClaimsTest` drops the old "the next key is one the IDE binds, then Herdr still gets it once" test, which pinned the behaviour 3.5 replaces, and adds the follow-up outcomes against the fixture: `prefix+v` bound, the prefix twice, Esc, then for Cmd+O, plain `y`, a non-bindable key, Cmd+K (a direct Herdr binding) and Cmd+C (copy) the no-prefix route plus `closesPrefix`; each case checks that a plain `v` after it goes to the IDE, so the pending state is cleared. The new `TerminalKeyFallbackTest` drives the listener with synthetic `KeyEvent`s: the three macOS chords send their byte on press and repeat and nothing on release, Linux `super+left` sends the encoded press and release, other modifier sets and a plain arrow stay encoded, and a press the IDE handles sends nothing for its press, typed event and release. `./gradlew test --tests '*HerdrKeyClaimsTest*' --tests '*TerminalKeyFallbackTest*'`: 8 and 4 tests, no failures.
 - Surprise during 3.1: the edit tool resolved a relative path against the main checkout, so the first temporary repro log landed in `/Users/codaveto/Repos/Plugins/turbo-herdr/src/.../TerminalKeyFallback.kt`. It was removed by hand straight away, and `git status` there shows that file clean. All later edits used absolute worktree paths.
 - 5.1 (Verification): `openspec validate das-195-fix-terminal-input-bugs --type change --strict` printed "Change 'das-195-fix-terminal-input-bugs' is valid" (exit 0) on 2026-09-30.
+- 5.2 (Verification): `crabbox job run check` refused: the lease `static_clawboy-vps-tail007be0-ts-net` is claimed by `/Users/codaveto/Worktrees/das/madspec/add-jev-route-finding`, and another project's reservation is never taken over, so the check ran locally per the fallback rules. `./gradlew --console=plain check` on `16f959e` (natives already in `src/main/resources/native/`, so no natives build): BUILD SUCCESSFUL, `:test` executed, 12 suites, 70 tests, 0 failures, 0 errors, 0 skipped.
 
 ## Plan Change Log
 
