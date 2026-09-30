@@ -19,7 +19,7 @@
 
 ## 4. Release (Infra)
 
-- [ ] 4.1 `gradle.properties` and `build.gradle.kts` -- set `pluginVersion=0.1.1` and add 0.1.1 change notes naming the three fixes -- the issues ask for a new Marketplace version; 0.1.0 is the only published one; after `./gradlew patchPluginXml`, the patched `plugin.xml` under `build/` shows version 0.1.1 and the new notes.
+- [x] 4.1 `gradle.properties` and `build.gradle.kts` -- set `pluginVersion=0.1.1` and add 0.1.1 change notes naming the three fixes -- the issues ask for a new Marketplace version; 0.1.0 is the only published one; after `./gradlew patchPluginXml`, the patched `plugin.xml` under `build/` shows version 0.1.1 and the new notes.
 - [ ] 4.2 after merge, tag `v0.1.1` on main and push it -- runs the `publish` workflow; the workflow succeeds and the Marketplace lists 0.1.1 (`curl -s https://plugins.jetbrains.com/api/plugins/34433/updates?size=1`).
 
 ## 5. Verification
@@ -40,6 +40,8 @@ Sandbox rig for the real-key tasks (3.1, 5.3 to 5.7), prepared by the planner:
 - Named actions: `curl -s -X POST 'http://127.0.0.1:63343/api/herdr?action=<name>'` with `herdr.panel.show`, `herdr.panel.read` (screen, cursor, focused), `herdr.panel.capture` (arg `path`, PNG). Port 63342 is Brian's own IDE: never send it keys.
 - Real keys: `/tmp/das195-rig/ev` (source `ev.swift` beside it) posts CGEvents: `ev act <sandbox pid>` brings the sandbox to front (Stage Manager hides it otherwise), `ev key <mac keycode> cmd,shift,ctrl,alt`, `ev text <string>`, `ev click X Y` (screen points). Keycodes: left 123, right 124, delete 51, comma 43, o 31, v 9, x 7, semicolon 41, escape 53.
 - Herdr side: `HERDR_SOCKET_PATH=~/.config/herdr/sessions/das195-verify/herdr.sock herdr tab list|focus|create` and `herdr pane list|read|send-text`.
+- 4.1 (Release): `pluginVersion=0.1.1` in `gradle.properties`; 0.1.1 notes added above the 0.1.0 notes in `changeNotes` of `build.gradle.kts`, one item per fix (stale rows DAS-196, caret grid DAS-192, key routing DAS-194). Verified: `./gradlew patchPluginXml` gives `build/tmp/patchPluginXml/plugin.xml` with `<version>0.1.1</version>` and the new notes.
+- 4.2 (Release) left open: it runs after merge (tag `v0.1.1` on main), so it cannot be done from this branch.
 
 ## Plan Change Log
 
