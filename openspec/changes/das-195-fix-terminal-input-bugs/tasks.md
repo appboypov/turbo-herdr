@@ -55,4 +55,6 @@ Sandbox rig for the real-key tasks (3.1, 5.3 to 5.7), prepared by the planner:
 
 ## Plan Change Log
 
+- 2026-09-30, during build (3.4): the raw bytes of design D3 reach the session through a new named action `herdr.terminal.input` (arg `text`), because the view model sends every terminal input through named actions (prior change's design D7). The proposal's Impact line says "no change to the named actions"; existing actions are unchanged, and this one is added. Accepted by the lead as the path the architecture requires.
+
 ## Review Triage Log
