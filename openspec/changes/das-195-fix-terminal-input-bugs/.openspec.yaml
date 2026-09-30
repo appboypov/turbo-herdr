@@ -1,7 +1,7 @@
 schema: intent-driven
 created: 2026-09-30
 build:
-  status: 'in-progress'
+  status: 'in-review'
   baseline_revision: '4862322d5665b7a852c9aced85e3427d74415526'
   type: 'bugfix'
   ticket: 'DAS-195'
