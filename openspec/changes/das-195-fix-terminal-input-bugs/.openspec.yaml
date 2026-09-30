@@ -1,0 +1,12 @@
+schema: intent-driven
+created: 2026-09-30
+build:
+  status: 'draft'
+  type: 'bugfix'
+  ticket: 'DAS-195'
+  intent: '/Users/codaveto/Brainspace/intents/herdr-intellij-tool-window'
+  route: 'full'
+  route_source: 'auto'
+  context:
+    - '{project-root}/adr/'
+    - '{project-root}/.crabbox.yaml'
