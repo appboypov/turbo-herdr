@@ -5,8 +5,8 @@
 
 ## 2. Frame publishing (Backend, DAS-196, design D1)
 
-- [ ] 2.1 `src/main/kotlin/dev/appboypov/herdridea/terminal/shared/services/TerminalSession.kt` -- decide on the terminal thread when to publish, so the frame after a burst always includes the last chunk fed; keep one frame per burst -- fixes the stale rows (spec "The panel shows the latest screen after output stops"); verified by 2.2 and 5.3.
-- [ ] 2.2 `src/test/kotlin/dev/appboypov/herdridea/terminal/shared/services/TerminalSessionTest.kt` -- add a test where a program writes many chunks quickly, then a final marker, then waits; the last published frame shows the marker -- catches a lost last chunk; `./gradlew test --tests '*TerminalSessionTest*'` passes, and fails before 2.1.
+- [x] 2.1 `src/main/kotlin/dev/appboypov/herdridea/terminal/shared/services/TerminalSession.kt` -- decide on the terminal thread when to publish, so the frame after a burst always includes the last chunk fed; keep one frame per burst -- fixes the stale rows (spec "The panel shows the latest screen after output stops"); verified by 2.2 and 5.3.
+- [x] 2.2 `src/test/kotlin/dev/appboypov/herdridea/terminal/shared/services/TerminalSessionTest.kt` -- add a test where a program writes many chunks quickly, then a final marker, then waits; the last published frame shows the marker -- catches a lost last chunk; `./gradlew test --tests '*TerminalSessionTest*'` passes, and fails before 2.1.
 
 ## 3. Panel key flow (Frontend, DAS-194, design D3, D4, D5)
 
@@ -42,6 +42,8 @@ Sandbox rig for the real-key tasks (3.1, 5.3 to 5.7), prepared by the planner:
 - Herdr side: `HERDR_SOCKET_PATH=~/.config/herdr/sessions/das195-verify/herdr.sock herdr tab list|focus|create` and `herdr pane list|read|send-text`.
 - 4.1 (Release): `pluginVersion=0.1.1` in `gradle.properties`; 0.1.1 notes added above the 0.1.0 notes in `changeNotes` of `build.gradle.kts`, one item per fix (stale rows DAS-196, caret grid DAS-192, key routing DAS-194). Verified: `./gradlew patchPluginXml` gives `build/tmp/patchPluginXml/plugin.xml` with `<version>0.1.1</version>` and the new notes.
 - 4.2 (Release) left open: it runs after merge (tag `v0.1.1` on main), so it cannot be done from this branch.
+- 2.1 (Backend): `TerminalSession` drops `framePending`/`requestFrame`. The reader counts each chunk in `unfedChunks` before queueing its feed; the feed task decrements it and publishes when it reaches 0, so the terminal thread publishes once no read chunk is still unfed (design D1). A burst still gives one frame, and the last feed of a burst always publishes. The decrement runs before `terminal.feed`, so a feed that throws cannot leave the count stuck above 0 and stop all later frames.
+- 2.2 (Backend): a first test with only fast output (`yes | head -n 200000`, then the marker) passed against the old code: the terminal thread kept up and the race did not occur. The kept test makes the terminal thread busy with a frame sink that sleeps 300 ms, while the program writes 8 chunks 50 ms apart, then `END-OF-BURST`, then blocks on `read`, so later chunks queue behind a publish by timing rather than by luck. Against the old code it failed, the last frame ending at `chunk 7`; after 2.1 it passed 4 runs in a row.
 
 ## Plan Change Log
 
