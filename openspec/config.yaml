@@ -4,11 +4,10 @@ context: |
   herdr-idea: an IntelliJ Platform plugin that shows a live Herdr terminal multiplexer screen in a docked tool window.
   Terminal emulation comes from Ghostty's libghostty-vt, bundled natively for macOS and Linux; the plugin draws the screen itself in Swing.
   Published on JetBrains Marketplace; targets IntelliJ Platform 2026.1 (build 261) and later.
-  Owning intent: /Users/codaveto/Work/intents/herdr-intellij-tool-window/herdr-intellij-tool-window.md
 
 rules:
   proposal:
-    - Pressure-test the intent with the companion grill-me skill before writing; name the owning intent record path.
+    - Pressure-test the intent with the companion grill-me skill before writing; link the owning Intent object in Anytype.
   specs:
     - Write requirements and scenarios in Gherkin with the companion gherkin-authoring skill; every requirement carries at least one scenario.
   design:
