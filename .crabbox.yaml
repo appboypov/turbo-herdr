@@ -16,9 +16,9 @@ run:
 jobs:
   check:
     shell: true
-    command: scripts/build-natives.sh && ./gradlew --no-daemon --console=plain check
+    command: /work/crabbox/bin/slot bash -c 'scripts/build-natives.sh && ./gradlew --no-daemon --console=plain check'
     stop: auto
   verify:
     shell: true
-    command: scripts/build-natives.sh && ./gradlew --no-daemon --console=plain verifyPlugin
+    command: /work/crabbox/bin/slot bash -c 'scripts/build-natives.sh && ./gradlew --no-daemon --console=plain verifyPlugin'
     stop: auto
